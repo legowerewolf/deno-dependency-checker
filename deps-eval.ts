@@ -1,29 +1,15 @@
 import { equal } from "https://deno.land/std@0.95.0/testing/asserts.ts";
+import { DenoInfoJson } from "./types/DenoInfoJson.ts";
 
-interface DenoDepsInfo {
-  root: string;
-  modules: [
-    {
-      specifier: string;
-      dependencies: [
-        {
-          specifier: string;
-          isDynamic: boolean;
-          code: string;
-        },
-      ];
-      size: number;
-      mediaType: "TypeScript" | string;
-      local: string;
-      checksum: string;
-      emit: string;
-    },
-  ];
-}
+const regexes = {
+  DenoLand: /https?:\/\/(?<name>.*)@(?<version>[\d\.]*)/,
+};
 
-const nameVerRegex = /https?:\/\/(?<name>.*)@(?<version>[\d\.]*)/;
+const hostRegexMap = {
+  "deno.land": regexes.DenoLand,
+};
 
-const graph: DenoDepsInfo = await Deno.run({
+const graph: DenoInfoJson = await Deno.run({
   cmd: ["deno", "info", Deno.args[0], "--json", "--unstable"],
   stdout: "piped",
 })
@@ -33,7 +19,7 @@ const graph: DenoDepsInfo = await Deno.run({
 const data = await Promise.all(
   graph.modules
     .map((dep) => {
-      const parsed = dep.specifier.match(nameVerRegex);
+      const parsed = dep.specifier.match(regexes.DenoLand);
 
       return {
         name: parsed?.groups?.["name"] ?? "",
@@ -49,7 +35,7 @@ const data = await Promise.all(
       return {
         ...elem,
         currentVersion: await fetch("https://" + elem.name).then(
-          (resp) => resp.url.match(nameVerRegex)?.groups?.["version"],
+          (resp) => resp.url.match(regexes.DenoLand)?.groups?.["version"],
         ),
       };
     }),
