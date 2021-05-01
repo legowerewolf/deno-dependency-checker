@@ -2,6 +2,9 @@
 
 Tool for checking dependency versions for Deno programs
 
+Archived, because [deno-udd](https://github.com/hayd/deno-udd) is a lot more
+stable.
+
 ## Warnings
 
 - Uses unstable `deno info --json` to get dependency info in a readable format.
